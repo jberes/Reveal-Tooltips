@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reveal SDK - Dashboard Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+    <script>window.revealDisableKeyboardManagement = true;</script>
+    <script src="https://dl.revealbi.io/reveal/libs/1.7.1/infragistics.reveal.js"></script>
+</head>
+<body>
+    <div id="revealView" style="height: calc(100vh - 25px); width: 100%;"></div>
+    <script>
+        (async () => { 
+            // ***
+            // Set your Reveal server endpoint and the dashboard you are loading
+            const baseUrl = "https://samples.revealbi.io/upmedia-backend/reveal-api/";
+            const dashboardName = "Sales";
+
+            // ***
+            // Set up Global Reveal SDK settings
+            // https://help.revealbi.io/api/javascript/latest/classes/revealsdksettings.html
+            $.ig.RevealSdkSettings.setBaseUrl(baseUrl);
+            $.ig.RevealSdkSettings.enableActionsOnHoverTooltip = true;
+            // ***
+
+            try {
+                // ***
+                // call loadDashboard from the RVDashboard class
+                // https://help.revealbi.io/api/javascript/latest/classes/rvdashboard.html
+                // into the RevealView <div> on your page
+                const dashboard = await $.ig.RVDashboard.loadDashboard(dashboardName);
+                const revealView = new $.ig.RevealView("#revealView");
+
+                // Optional setting, however this ensures you get
+                // the interactive tooltip when hovering over visualizations
+                revealView.interactiveFilteringEnabled = true;
+                revealView.dashboard = dashboard;
+
+                // handle the onTooltipShowing event
+                revealView.onTooltipShowing = (args) => {
+                    handleTooltipShowing(args, baseUrl, dashboardName);
+                };
+            } catch (error) {
+                console.error("Failed to load dashboard:", error);
+                alert("An error occurred while loading the dashboard.");
+            }
+        })();
+
+        function handleTooltipShowing(args, baseUrl, dashboardName) {
+            
+            const icons = ["https://svgsilh.com/svg/26432.svg"];
+
+            args.customItems.push(
+                new $.ig.RVTooltipItem(
+                    "Underlying Data",
+                    `Show ${args.cell.formattedValue}`,
+                    icons[0],
+                    () => alert("Check console for details", logTooltipDetails(args))),
+            );
+        }
+
+        function logTooltipDetails(args) {
+            console.log("Visualization Details:", {
+                type: args.visualization.chartType,
+                filters: args.visualization.filters,
+                id: args.visualization.id,
+                title: args.visualization.title
+            });
+
+            const simplifiedCell = { ...args.cell };
+            delete simplifiedCell.$t;
+
+            console.log("** Cell **", safeStringify(simplifiedCell));
+            console.log("** Row **", safeStringify(args.row));
+        }
+
+        /**
+         * Safely serializes a JavaScript object to a JSON string.
+         * Prevents errors caused by circular references in the object.
+         *
+         * @param {Object} obj - The object to be serialized.
+         * @returns {string} - A JSON string representation of the object.
+         */
+        function safeStringify(obj) {
+            const seen = new WeakSet();
+            return JSON.stringify(obj, (key, value) => {
+                if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) {
+                        return;
+                    }
+                    seen.add(value);
+                }
+                return value;
+            }, 2);
+        }
+    </script>
+</body>
+</html>
