@@ -1,6 +1,6 @@
 # Reveal Tooltips Example
 
-This sample (Tooltips.html) demonstrates using the `onTooltipsShowing` event, and what you get back in Args to use in your own JavaScript event.
+This sample (Tooltips.html) demonstrates using the `onTooltipsShowing` event, and what you get back in Args to use in your own JavaScript event.  Download and dbl-click the `tooltips.html` and click click the custom item on the tooltip.
 
 
  
